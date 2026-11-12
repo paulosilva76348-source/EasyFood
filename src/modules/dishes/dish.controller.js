@@ -43,6 +43,18 @@ async function update(req, res) {
   }
 }
 
+async function uploadImage(req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Envie uma imagem no campo image" });
+    }
+    const dish = await dishService.setDishImage(req.params.dishId, req.file, req.user.id);
+    return res.status(200).json(dish);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
 async function remove(req, res) {
   try {
     await dishService.deleteDish(req.params.dishId, req.user.id); // ⬅️
@@ -57,6 +69,7 @@ module.exports = {
   list,
   getById,
   update,
+  uploadImage,
   remove,
   handleError
 };

@@ -10,6 +10,18 @@ async function list(req, res) {
   }
 }
 
+async function getById(req, res) {
+  try {
+    const restaurant = await restaurantService.getRestaurant(req.params.restaurantId);
+    res.json(restaurant);
+  } catch (error) {
+    const status = error.statusCode || 500;
+    res.status(status).json({
+      error: status === 500 ? "Erro interno do servidor" : error.message
+    });
+  }
+}
+
 async function create(req, res) {
   const { name, category, rating } = req.body;
 
@@ -29,4 +41,24 @@ async function create(req, res) {
   }
 }
 
-module.exports = { list, create };
+async function uploadImage(req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Envie uma imagem no campo image" });
+    }
+    const restaurant = await restaurantService.setRestaurantImage(
+      req.params.restaurantId,
+      req.file,
+      req.user.id
+    );
+    res.json(restaurant);
+  } catch (error) {
+    const status = error.statusCode || 500;
+    console.error("Erro ao enviar imagem do restaurante:", error.message);
+    res.status(status).json({
+      error: status === 500 ? "Erro interno do servidor" : error.message
+    });
+  }
+}
+
+module.exports = { list, getById, create, uploadImage };

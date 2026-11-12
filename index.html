@@ -211,6 +211,7 @@
       transition: all 0.2s;
       animation: fadeIn 0.3s ease;
       flex-shrink: 0;
+      cursor: pointer;
     }
 
     @keyframes fadeIn {
@@ -231,6 +232,14 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .restaurant-img img,
+    .dish-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .restaurant-img .placeholder {
@@ -415,7 +424,8 @@
     }
 
     .form-group input,
-    .form-group select {
+    .form-group select,
+    .form-group textarea {
       width: 100%;
       padding: 12px 14px;
       border: 1px solid #e0e0e0;
@@ -424,12 +434,132 @@
       outline: none;
       transition: border-color 0.2s;
       background: #f8f8f8;
+      font-family: inherit;
+    }
+
+    .form-group textarea {
+      min-height: 72px;
+      resize: vertical;
     }
 
     .form-group input:focus,
-    .form-group select:focus {
+    .form-group select:focus,
+    .form-group textarea:focus {
       border-color: #1a1a1a;
       background: #fff;
+    }
+
+    .field-hint {
+      font-size: 11px;
+      color: #999;
+      margin-top: 6px;
+    }
+
+    .image-preview {
+      display: none;
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-top: 8px;
+      background: #f0f0f0;
+    }
+
+    .image-preview.visible {
+      display: block;
+    }
+
+    .session-bar {
+      font-size: 13px;
+      background: #f8f8f8;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      color: #555;
+    }
+
+    .session-bar button,
+    .back-btn {
+      border: none;
+      background: transparent;
+      font-weight: 700;
+      cursor: pointer;
+      color: #1a1a1a;
+    }
+
+    .session-bar button {
+      margin-left: 8px;
+    }
+
+    .back-btn {
+      font-size: 14px;
+      padding: 0;
+      margin-bottom: 12px;
+    }
+
+    .section-label {
+      margin: 22px 0 12px;
+      font-size: 16px;
+    }
+
+    .dish-card {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid #f0f0f0;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .dish-img {
+      width: 72px;
+      height: 72px;
+      border-radius: 10px;
+      background: #f0f0f0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 28px;
+    }
+
+    .dish-info h3 {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .dish-info p {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 4px;
+    }
+
+    .dish-info strong {
+      font-size: 13px;
+    }
+
+    .profile-photo {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #f0f0f0;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .profile-placeholder {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin-bottom: 12px;
     }
 
     .submit-btn {
@@ -558,7 +688,21 @@
 
     <!-- Add Restaurant Form (hidden by default) -->
     <div class="add-restaurant-section" id="add-restaurant-section">
-      <h2>➕ Cadastrar Restaurante</h2>
+      <div class="session-bar" id="session-bar">Você não está logado. Entre para enviar fotos.</div>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-email">E-mail</label>
+          <input type="email" id="login-email" placeholder="seu@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Senha</label>
+          <input type="password" id="login-password" placeholder="Sua senha" required>
+        </div>
+        <button type="submit" class="submit-btn" id="login-btn">Entrar</button>
+      </form>
+      <div class="form-message" id="login-message"></div>
+
+      <h2 class="section-label">➕ Cadastrar Restaurante</h2>
       <form id="add-restaurant-form">
         <div class="form-group">
           <label for="restaurant-name">Nome do Restaurante</label>
@@ -582,9 +726,87 @@
           <label for="restaurant-rating">Avaliação (0 a 5)</label>
           <input type="number" id="restaurant-rating" placeholder="Ex: 4.3" min="0" max="5" step="0.1" required>
         </div>
+        <div class="form-group">
+          <label for="restaurant-image">Foto do restaurante</label>
+          <input type="file" id="restaurant-image" accept="image/jpeg,image/png,image/webp">
+          <p class="field-hint">JPG, PNG ou WEBP. Máximo 5 MB.</p>
+          <img id="restaurant-image-preview" class="image-preview" alt="Prévia da foto do restaurante">
+        </div>
         <button type="submit" class="submit-btn" id="submit-btn">Cadastrar Restaurante</button>
       </form>
       <div class="form-message" id="form-message"></div>
+
+      <h2 class="section-label">🍽️ Cadastrar Prato</h2>
+      <form id="add-dish-form">
+        <div class="form-group">
+          <label for="dish-restaurant">Restaurante</label>
+          <select id="dish-restaurant" required>
+            <option value="">Cadastre um restaurante primeiro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="dish-name">Nome do prato</label>
+          <input type="text" id="dish-name" placeholder="Ex: Burger da casa" required>
+        </div>
+        <div class="form-group">
+          <label for="dish-category">Categoria</label>
+          <input type="text" id="dish-category" placeholder="Ex: Lanches" required>
+        </div>
+        <div class="form-group">
+          <label for="dish-price">Preço</label>
+          <input type="number" id="dish-price" placeholder="Ex: 32.90" min="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label for="dish-description">Descrição</label>
+          <textarea id="dish-description" placeholder="Ingredientes, tamanho, acompanhamento" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="dish-image">Foto do prato</label>
+          <input type="file" id="dish-image" accept="image/jpeg,image/png,image/webp">
+          <p class="field-hint">JPG, PNG ou WEBP. Máximo 5 MB.</p>
+          <img id="dish-image-preview" class="image-preview" alt="Prévia da foto do prato">
+        </div>
+        <button type="submit" class="submit-btn" id="dish-submit-btn">Cadastrar Prato</button>
+      </form>
+      <div class="form-message" id="dish-form-message"></div>
+    </div>
+
+    <div class="add-restaurant-section" id="dish-section">
+      <button type="button" class="back-btn" onclick="switchView('home')">← Voltar</button>
+      <h2 id="dish-title">Menu</h2>
+      <form id="menu-form" hidden>
+        <h2 class="section-label">Adicionar ao menu</h2>
+        <div class="form-group">
+          <label for="menu-name">Nome do prato</label>
+          <input type="text" id="menu-name" placeholder="Ex: Burger da casa" required>
+        </div>
+        <div class="form-group">
+          <label for="menu-category">Categoria</label>
+          <input type="text" id="menu-category" placeholder="Ex: Lanches" required>
+        </div>
+        <div class="form-group">
+          <label for="menu-price">Preço</label>
+          <input type="number" id="menu-price" placeholder="Ex: 32.90" min="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label for="menu-description">Descrição</label>
+          <textarea id="menu-description" placeholder="Ingredientes, tamanho, acompanhamento" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="menu-image">Foto do prato</label>
+          <input type="file" id="menu-image" accept="image/jpeg,image/png,image/webp">
+          <p class="field-hint">JPG, PNG ou WEBP. Máximo 5 MB.</p>
+          <img id="menu-image-preview" class="image-preview" alt="Prévia da foto do prato">
+        </div>
+        <button type="submit" class="submit-btn" id="menu-submit-btn">Adicionar ao menu</button>
+      </form>
+      <div class="form-message" id="menu-form-message"></div>
+      <div id="dish-list"></div>
+    </div>
+
+    <div class="add-restaurant-section" id="profile-section">
+      <h2>Perfil</h2>
+      <div id="profile-content"></div>
     </div>
 
     <!-- Bottom nav -->
@@ -605,7 +827,7 @@
         <span class="icon">❤️</span>
         <span>Favoritos</span>
       </div>
-      <div class="nav-item" data-view="profile">
+      <div class="nav-item" data-view="profile" onclick="switchView('profile')">
         <span class="icon">👤</span>
         <span>Perfil</span>
       </div>
@@ -618,7 +840,10 @@
     // Consome a API com filtro por categoria e paginação
     // =============================================================
 
-    const API_URL = "http://localhost:3000/restaurants";
+    const API_ORIGIN = window.location.protocol === "file:"
+      ? "http://localhost:3000"
+      : window.location.origin;
+    const API_URL = `${API_ORIGIN}/restaurants`;
 
     // Quantos restaurantes exibir por vez
     const PAGE_SIZE = 3;
@@ -628,6 +853,7 @@
     let filteredRestaurants = [];
     let selectedCategory = "Todos";
     let currentPage = 0;
+    let viewingRestaurant = null;
 
     // Emojis por categoria
     const categoryEmoji = {
@@ -667,7 +893,12 @@
       try {
         const response = await fetch(API_URL);
         const restaurants = await response.json();
+        if (!response.ok || !Array.isArray(restaurants)) {
+          showError();
+          return;
+        }
         allRestaurants = restaurants;
+        fillRestaurantSelect();
 
         setTimeout(() => {
           filterAndRender();
@@ -718,17 +949,17 @@
 
       // Monta os cards
       let html = visible.map((restaurant, index) => `
-        <div class="restaurant-card" style="animation-delay: ${index * 0.05}s">
+        <div class="restaurant-card" style="animation-delay: ${index * 0.05}s" onclick="openRestaurant(${Number(restaurant.id)})">
           <div class="restaurant-img">
-            <span class="placeholder">${categoryEmoji[restaurant.category] || "🏪"}</span>
+            ${photoMarkup(restaurant.imageUrl, categoryEmoji[restaurant.category] || "🏪")}
           </div>
           <div class="restaurant-info">
-            <h3>${restaurant.name}</h3>
-            <div class="meta">${restaurant.category} • 20-30 min</div>
-            <div class="rating">★ ${restaurant.rating}</div>
+            <h3>${escapeHtml(restaurant.name)}</h3>
+            <div class="meta">${escapeHtml(restaurant.category)} • 20-30 min</div>
+            <div class="rating">★ ${escapeHtml(restaurant.rating)}</div>
           </div>
           <div class="restaurant-right">
-            <span class="heart">♡</span>
+            <span class="heart" onclick="event.stopPropagation()">♡</span>
             <div class="delivery-info">
               Entrega<br>
               <span class="price">R$ ${getDeliveryPrice(restaurant.id)}</span>
@@ -807,22 +1038,21 @@
     function switchView(view) {
       const homeElements = document.querySelectorAll('.search-bar, .categories, .section-header, .restaurant-list');
       const addSection = document.getElementById('add-restaurant-section');
+      const dishSection = document.getElementById('dish-section');
+      const profileSection = document.getElementById('profile-section');
       const navItems = document.querySelectorAll('.nav-item');
 
-      if (view === 'add') {
-        homeElements.forEach(el => el.style.display = 'none');
-        addSection.classList.add('active');
-      } else {
-        homeElements.forEach(el => el.style.display = '');
-        addSection.classList.remove('active');
-      }
+      homeElements.forEach(el => el.style.display = view === 'home' ? '' : 'none');
+      addSection.classList.toggle('active', view === 'add');
+      dishSection.classList.toggle('active', view === 'dishes');
+      profileSection.classList.toggle('active', view === 'profile');
 
-      // Atualiza nav ativo
+      if (view === 'add') fillRestaurantSelect();
+      if (view === 'profile') renderProfile();
+
+      const navView = view === 'dishes' ? 'home' : view;
       navItems.forEach(item => {
-        item.classList.remove('active');
-        if (item.dataset.view === view) {
-          item.classList.add('active');
-        }
+        item.classList.toggle('active', item.dataset.view === navView);
       });
     }
 
@@ -832,6 +1062,319 @@
 
     const addForm = document.getElementById('add-restaurant-form');
     const formMessage = document.getElementById('form-message');
+    const dishForm = document.getElementById('add-dish-form');
+    const dishFormMessage = document.getElementById('dish-form-message');
+    const loginForm = document.getElementById('login-form');
+    const loginMessage = document.getElementById('login-message');
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function imageSrc(url) {
+      if (typeof url !== "string" || !url) return "";
+      if (url.startsWith("/uploads/")) return API_ORIGIN + url;
+      if (/^https?:\/\//i.test(url)) return url;
+      return "";
+    }
+
+    function photoMarkup(url, fallback) {
+      const src = imageSrc(url);
+      if (!src) return `<span class="placeholder">${fallback}</span>`;
+      return `<img src="${escapeHtml(src)}" alt="">`;
+    }
+
+    function authHeaders(extra = {}) {
+      const headers = { ...extra };
+      const token = localStorage.getItem("token");
+      if (token) headers.Authorization = `Bearer ${token}`;
+      return headers;
+    }
+
+    function showFormMessage(text, type, element = formMessage) {
+      element.textContent = text;
+      element.className = 'form-message ' + type;
+      setTimeout(() => {
+        if (element.textContent === text) element.className = 'form-message';
+      }, 4000);
+    }
+
+    async function readError(response, fallback) {
+      try {
+        const data = await response.json();
+        if (response.status === 401) return "Entre na sua conta para continuar.";
+        return data.error || fallback;
+      } catch (error) {
+        return response.status === 401 ? "Entre na sua conta para continuar." : fallback;
+      }
+    }
+
+    async function uploadImage(url, file) {
+      const body = new FormData();
+      body.append("image", file);
+      const response = await fetch(url, {
+        method: "POST",
+        headers: authHeaders(),
+        body
+      });
+      if (!response.ok) {
+        throw new Error(await readError(response, "Não foi possível enviar a imagem"));
+      }
+      return response.json();
+    }
+
+    function bindPreview(inputId, previewId) {
+      const input = document.getElementById(inputId);
+      const preview = document.getElementById(previewId);
+      input.addEventListener("change", () => {
+        const file = input.files && input.files[0];
+        if (!file) {
+          preview.removeAttribute("src");
+          preview.classList.remove("visible");
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          input.value = "";
+          preview.classList.remove("visible");
+          const target = inputId === "dish-image"
+            ? dishFormMessage
+            : inputId === "menu-image"
+              ? document.getElementById("menu-form-message")
+              : formMessage;
+          showFormMessage("A imagem deve ter no máximo 5 MB.", "error", target);
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          preview.src = reader.result;
+          preview.classList.add("visible");
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function renderSession() {
+      const token = localStorage.getItem("token");
+      if (token && !currentUserId()) {
+        try {
+          const response = await fetch(`${API_ORIGIN}/auth/me`, { headers: authHeaders() });
+          if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem("userId", String(data.user.id));
+            if (data.user.name) localStorage.setItem("userName", data.user.name);
+          }
+        } catch (error) {
+          // A sessão continua com o token já salvo.
+        }
+      }
+
+      const bar = document.getElementById("session-bar");
+      const name = localStorage.getItem("userName");
+      if (!token) {
+        loginForm.style.display = "";
+        bar.textContent = "Você não está logado. Entre para enviar fotos.";
+        return;
+      }
+      loginForm.style.display = "none";
+      bar.innerHTML = `Logado como <strong>${escapeHtml(name || "usuário")}</strong> <button type="button" id="logout-btn">Sair</button>`;
+      document.getElementById("logout-btn").addEventListener("click", () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userName");
+        localStorage.removeItem("userId");
+        renderSession();
+      });
+    }
+
+    function currentUserId() {
+      const id = Number(localStorage.getItem("userId"));
+      return Number.isSafeInteger(id) && id > 0 ? id : null;
+    }
+
+    function ownsRestaurant(restaurant) {
+      return !!restaurant && currentUserId() !== null && Number(restaurant.ownerId) === currentUserId();
+    }
+
+    function fillRestaurantSelect() {
+      const select = document.getElementById("dish-restaurant");
+      const mine = allRestaurants.filter(ownsRestaurant);
+      if (!currentUserId()) {
+        select.innerHTML = '<option value="">Entre na sua conta para cadastrar o menu</option>';
+        return;
+      }
+      if (!mine.length) {
+        select.innerHTML = '<option value="">Cadastre um restaurante primeiro</option>';
+        return;
+      }
+      select.innerHTML = mine.map((restaurant) =>
+        `<option value="${Number(restaurant.id)}">${escapeHtml(restaurant.name)}</option>`
+      ).join("");
+    }
+
+    function formatPrice(price) {
+      const value = Number(price);
+      if (!Number.isFinite(value)) return "";
+      return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    function renderDishes(dishes) {
+      const list = document.getElementById("dish-list");
+      if (!dishes.length) {
+        list.innerHTML = `
+          <div class="empty">
+            <div class="icon">🍽️</div>
+            <p>Este restaurante ainda não tem pratos.</p>
+          </div>
+        `;
+        return;
+      }
+      list.innerHTML = dishes.map((dish) => `
+        <div class="dish-card">
+          <div class="dish-img">${photoMarkup(dish.imageUrl, "🍽️")}</div>
+          <div class="dish-info">
+            <h3>${escapeHtml(dish.name)}</h3>
+            <p>${escapeHtml(dish.description)}</p>
+            <strong>${formatPrice(dish.price)}</strong>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function showMenuForm(restaurant) {
+      const form = document.getElementById("menu-form");
+      form.hidden = !ownsRestaurant(restaurant);
+    }
+
+    async function openRestaurant(id) {
+      switchView("dishes");
+      const list = document.getElementById("dish-list");
+      document.getElementById("menu-form").hidden = true;
+      list.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Carregando menu...</p>
+        </div>
+      `;
+      try {
+        const response = await fetch(`${API_ORIGIN}/restaurants/${id}`);
+        if (!response.ok) throw new Error(await readError(response, "Não foi possível abrir o restaurante"));
+        const restaurant = await response.json();
+        viewingRestaurant = restaurant;
+        const index = allRestaurants.findIndex((item) => Number(item.id) === Number(restaurant.id));
+        if (index >= 0) allRestaurants[index] = { ...allRestaurants[index], ...restaurant };
+        document.getElementById("dish-title").textContent = restaurant.name;
+        showMenuForm(restaurant);
+        renderDishes(Array.isArray(restaurant.dishes) ? restaurant.dishes : []);
+      } catch (error) {
+        viewingRestaurant = null;
+        list.innerHTML = `<div class="error"><p>${escapeHtml(error.message || "Não foi possível carregar o menu.")}</p></div>`;
+      }
+    }
+
+    async function renderProfile() {
+      const box = document.getElementById("profile-content");
+      if (!localStorage.getItem("token")) {
+        box.innerHTML = `
+          <p class="field-hint">Entre na sua conta para ver o perfil e enviar a foto.</p>
+          <button type="button" class="submit-btn" id="go-login-btn">Ir para o login</button>
+        `;
+        document.getElementById("go-login-btn").addEventListener("click", () => switchView("add"));
+        return;
+      }
+
+      box.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Carregando perfil...</p>
+        </div>
+      `;
+
+      try {
+        const response = await fetch(`${API_ORIGIN}/auth/me`, { headers: authHeaders() });
+        if (!response.ok) throw new Error(await readError(response, "Não foi possível carregar o perfil"));
+        const data = await response.json();
+        const user = data.user;
+        localStorage.setItem("userId", String(user.id));
+        localStorage.setItem("userName", user.name);
+        const photo = imageSrc(user.imageUrl);
+        box.innerHTML = `
+          ${photo
+            ? `<img class="profile-photo" src="${escapeHtml(photo)}" alt="Foto do perfil">`
+            : `<div class="profile-placeholder">👤</div>`}
+          <h3>${escapeHtml(user.name)}</h3>
+          <p class="field-hint">${escapeHtml(user.email)}</p>
+          <form id="profile-form">
+            <div class="form-group">
+              <label for="profile-image">Foto do perfil</label>
+              <input type="file" id="profile-image" accept="image/jpeg,image/png,image/webp" required>
+              <p class="field-hint">JPG, PNG ou WEBP. Máximo 5 MB.</p>
+            </div>
+            <button type="submit" class="submit-btn" id="profile-submit-btn">Salvar foto</button>
+          </form>
+          <div class="form-message" id="profile-message"></div>
+        `;
+        document.getElementById("profile-form").addEventListener("submit", uploadProfilePhoto);
+      } catch (error) {
+        box.innerHTML = `<div class="error"><p>${escapeHtml(error.message)}</p></div>`;
+      }
+    }
+
+    async function uploadProfilePhoto(event) {
+      event.preventDefault();
+      const input = document.getElementById("profile-image");
+      const file = input.files && input.files[0];
+      const message = document.getElementById("profile-message");
+      if (!file) {
+        showFormMessage("Escolha uma foto.", "error", message);
+        return;
+      }
+      const button = document.getElementById("profile-submit-btn");
+      button.disabled = true;
+      button.textContent = "Enviando...";
+      try {
+        await uploadImage(`${API_ORIGIN}/auth/me/image`, file);
+        showFormMessage("Foto do perfil atualizada.", "success", message);
+        renderProfile();
+      } catch (error) {
+        showFormMessage(error.message || "Não foi possível enviar a foto.", "error", message);
+        button.disabled = false;
+        button.textContent = "Salvar foto";
+      }
+    }
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+      const loginBtn = document.getElementById("login-btn");
+      loginBtn.disabled = true;
+      loginBtn.textContent = "Entrando...";
+      try {
+        const response = await fetch(`${API_ORIGIN}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        if (!response.ok) {
+          throw new Error(await readError(response, "Não foi possível entrar"));
+        }
+        const data = await response.json();
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("userName", data.user?.name || email);
+        if (data.user?.id) localStorage.setItem("userId", String(data.user.id));
+        loginForm.reset();
+        renderSession();
+        showFormMessage("Login feito. Já pode enviar as fotos.", "success", loginMessage);
+      } catch (error) {
+        showFormMessage(error.message || "Não foi possível entrar.", "error", loginMessage);
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Entrar";
+      }
+    });
 
     addForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -839,9 +1382,15 @@
       const name = document.getElementById('restaurant-name').value.trim();
       const category = document.getElementById('restaurant-category').value;
       const rating = parseFloat(document.getElementById('restaurant-rating').value);
+      const imageInput = document.getElementById('restaurant-image');
+      const file = imageInput.files && imageInput.files[0];
 
       if (!name || !category || isNaN(rating)) {
         showFormMessage('Preencha todos os campos corretamente.', 'error');
+        return;
+      }
+      if (!localStorage.getItem("token")) {
+        showFormMessage("Entre na sua conta antes de cadastrar.", "error");
         return;
       }
 
@@ -852,41 +1401,163 @@
       try {
         const response = await fetch(API_URL, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: authHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ name, category, rating })
         });
 
         if (!response.ok) {
-          throw new Error('Erro ao cadastrar restaurante');
+          throw new Error(await readError(response, "Erro ao cadastrar restaurante"));
         }
 
         const newRestaurant = await response.json();
+        if (file) {
+          try {
+            const uploaded = await uploadImage(`${API_ORIGIN}/restaurants/${newRestaurant.id}/image`, file);
+            newRestaurant.imageUrl = uploaded.imageUrl;
+          } catch (imageError) {
+            allRestaurants.push(newRestaurant);
+            fillRestaurantSelect();
+            filterAndRender();
+            addForm.reset();
+            document.getElementById("restaurant-image-preview").classList.remove("visible");
+            showFormMessage(`Restaurante cadastrado, mas a foto falhou: ${imageError.message}`, "error");
+            return;
+          }
+        }
+
         showFormMessage(`✅ "${newRestaurant.name}" cadastrado com sucesso!`, 'success');
-
-        // Limpa o formulário
         addForm.reset();
-
-        // Atualiza a lista de restaurantes
+        document.getElementById("restaurant-image-preview").classList.remove("visible");
         allRestaurants.push(newRestaurant);
+        fillRestaurantSelect();
         filterAndRender();
-
       } catch (error) {
-        showFormMessage('❌ Erro ao cadastrar. Verifique se o servidor está rodando.', 'error');
+        showFormMessage(error.message || "Erro ao cadastrar. Verifique se o servidor está rodando.", "error");
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Cadastrar Restaurante';
       }
     });
 
-    function showFormMessage(text, type) {
-      formMessage.textContent = text;
-      formMessage.className = 'form-message ' + type;
-      setTimeout(() => {
-        formMessage.className = 'form-message';
-      }, 4000);
-    }
+    dishForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const restaurantId = document.getElementById("dish-restaurant").value;
+      const name = document.getElementById("dish-name").value.trim();
+      const category = document.getElementById("dish-category").value.trim();
+      const description = document.getElementById("dish-description").value.trim();
+      const price = document.getElementById("dish-price").value;
+      const imageInput = document.getElementById("dish-image");
+      const file = imageInput.files && imageInput.files[0];
+
+      if (!restaurantId || !name || !category || !description || price === "") {
+        showFormMessage("Preencha os dados do prato.", "error", dishFormMessage);
+        return;
+      }
+      if (!localStorage.getItem("token")) {
+        showFormMessage("Entre na sua conta antes de cadastrar.", "error", dishFormMessage);
+        return;
+      }
+
+      const submitBtn = document.getElementById("dish-submit-btn");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Cadastrando...";
+
+      try {
+        const response = await fetch(`${API_ORIGIN}/restaurants/${restaurantId}/dishes`, {
+          method: "POST",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({ name, category, description, price })
+        });
+        if (!response.ok) {
+          throw new Error(await readError(response, "Erro ao cadastrar prato"));
+        }
+        const dish = await response.json();
+        if (file) {
+          try {
+            await uploadImage(`${API_ORIGIN}/dishes/${dish.id}/image`, file);
+          } catch (imageError) {
+            dishForm.reset();
+            document.getElementById("dish-image-preview").classList.remove("visible");
+            fillRestaurantSelect();
+            showFormMessage(`Prato cadastrado, mas a foto falhou: ${imageError.message}`, "error", dishFormMessage);
+            return;
+          }
+        }
+        dishForm.reset();
+        document.getElementById("dish-image-preview").classList.remove("visible");
+        fillRestaurantSelect();
+        showFormMessage(`✅ "${dish.name}" cadastrado com sucesso!`, "success", dishFormMessage);
+      } catch (error) {
+        showFormMessage(error.message || "Erro ao cadastrar o prato.", "error", dishFormMessage);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Cadastrar Prato";
+      }
+    });
+
+    document.getElementById("menu-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const restaurant = viewingRestaurant;
+      if (!ownsRestaurant(restaurant)) {
+        showFormMessage("Você só pode cadastrar o menu do seu restaurante.", "error", document.getElementById("menu-form-message"));
+        return;
+      }
+
+      const name = document.getElementById("menu-name").value.trim();
+      const category = document.getElementById("menu-category").value.trim();
+      const description = document.getElementById("menu-description").value.trim();
+      const price = document.getElementById("menu-price").value;
+      const imageInput = document.getElementById("menu-image");
+      const file = imageInput.files && imageInput.files[0];
+      const message = document.getElementById("menu-form-message");
+
+      if (!name || !category || !description || price === "") {
+        showFormMessage("Preencha os dados do prato.", "error", message);
+        return;
+      }
+
+      const button = document.getElementById("menu-submit-btn");
+      button.disabled = true;
+      button.textContent = "Salvando...";
+
+      try {
+        const response = await fetch(`${API_ORIGIN}/restaurants/${restaurant.id}/dishes`, {
+          method: "POST",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({ name, category, description, price })
+        });
+        if (!response.ok) {
+          throw new Error(await readError(response, "Erro ao cadastrar o item do menu"));
+        }
+        const dish = await response.json();
+        if (file) {
+          try {
+            const uploaded = await uploadImage(`${API_ORIGIN}/dishes/${dish.id}/image`, file);
+            dish.imageUrl = uploaded.imageUrl;
+          } catch (imageError) {
+            document.getElementById("menu-form").reset();
+            document.getElementById("menu-image-preview").classList.remove("visible");
+            showFormMessage(`Item salvo no menu, mas a foto falhou: ${imageError.message}`, "error", message);
+            await openRestaurant(restaurant.id);
+            return;
+          }
+        }
+        document.getElementById("menu-form").reset();
+        document.getElementById("menu-image-preview").classList.remove("visible");
+        showFormMessage(`✅ "${dish.name}" entrou no menu.`, "success", message);
+        await openRestaurant(restaurant.id);
+      } catch (error) {
+        showFormMessage(error.message || "Erro ao cadastrar o item do menu.", "error", message);
+      } finally {
+        button.disabled = false;
+        button.textContent = "Adicionar ao menu";
+      }
+    });
+
+    bindPreview("restaurant-image", "restaurant-image-preview");
+    bindPreview("dish-image", "dish-image-preview");
+    bindPreview("menu-image", "menu-image-preview");
+    renderSession();
   </script>
 </body>
 </html>

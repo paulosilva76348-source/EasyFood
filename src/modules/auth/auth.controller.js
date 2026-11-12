@@ -39,4 +39,19 @@ async function login(req, res) {
   }
 }
 
-module.exports = { register, login };
+async function uploadImage(req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Envie uma imagem no campo image" });
+    }
+    const user = await authService.setProfileImage(req.user.id, req.file);
+    res.json(user);
+  } catch (error) {
+    const status = error.statusCode || 500;
+    res.status(status).json({
+      error: status === 500 ? "Erro interno do servidor" : error.message
+    });
+  }
+}
+
+module.exports = { register, login, uploadImage };

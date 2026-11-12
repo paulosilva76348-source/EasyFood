@@ -2,11 +2,13 @@ const express = require("express");
 const controller = require("./auth.controller");
 const authService = require("./auth.service");
 const authenticate = require("./auth.middleware");
+const { uploadSingle } = require("../shared/upload.middleware");
 
 const router = express.Router();
 
 router.post("/register", controller.register);
 router.post("/login", controller.login);
+router.post("/me/image", authenticate, uploadSingle, controller.uploadImage);
 
 // Rota protegida: busca os dados completos do usuário no banco
 router.get("/me", authenticate, async (req, res) => {

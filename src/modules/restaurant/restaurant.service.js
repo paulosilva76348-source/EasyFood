@@ -1,12 +1,29 @@
 const prisma = require("../../database/prisma");
 const emailService = require("../shared/email.service");
 const activityService = require("../shared/activity.service");
+const imageService = require("../shared/image.service");
 
 // Para quem o comercial recebe os avisos (no futuro, virá do .env ou do banco)
 const COMERCIAL_EMAIL = "felipe.oliveira@pro.fecaf.com.br";
 
 async function listRestaurants() {
-  return prisma.restaurant.findMany();
+  return prisma.restaurant.findMany({
+    include: { dishes: { orderBy: { id: "asc" } } }
+  });
+}
+
+async function getRestaurant(restaurantId) {
+  const id = parseId(restaurantId);
+  const restaurant = await prisma.restaurant.findUnique({
+    where: { id },
+    include: { dishes: { orderBy: { id: "asc" } } }
+  });
+  if (!restaurant) {
+    const error = new Error("Restaurante não encontrado");
+    error.statusCode = 404;
+    throw error;
+  }
+  return restaurant;
 }
 
 async function createRestaurant(data, user) {
@@ -16,7 +33,7 @@ async function createRestaurant(data, user) {
       name: data.name,
       category: data.category,
       rating: data.rating || 0,
-      ownerId: user.id // ⬅️ grava o dono (quem está logado, vindo do token)
+      ownerId: Number(user.id)
     }
   });
 
@@ -64,10 +81,52 @@ async function createRestaurant(data, user) {
   // --- Envio de sms função 
 }
 
+function parseId(value) {
+  const id = Number(value);
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    const error = new Error("Identificador inválido");
+    error.statusCode = 400;
+    throw error;
+  }
+  return id;
+}
+
+async function setRestaurantImage(restaurantId, file, userId) {
+  const id = parseId(restaurantId);
+  const restaurant = await prisma.restaurant.findUnique({ where: { id } });
+  if (!restaurant) {
+    const error = new Error("Restaurante não encontrado");
+    error.statusCode = 404;
+    throw error;
+  }
+  if (Number(restaurant.ownerId) !== Number(userId)) {
+    const error = new Error("Você não tem permissão para gerenciar este restaurante");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const imageUrl = await imageService.saveImage(file && file.buffer, "restaurants");
+  try {
+    const updated = await prisma.restaurant.update({
+      where: { id },
+      data: { imageUrl }
+    });
+    if (restaurant.imageUrl && restaurant.imageUrl !== imageUrl) {
+      imageService.removeImage(restaurant.imageUrl);
+    }
+    return updated;
+  } catch (error) {
+    imageService.removeImage(imageUrl);
+    throw error;
+  }
+}
+
 
 // --------createrestaurant.event
 
 module.exports = {
   listRestaurants,
-  createRestaurant
+  getRestaurant,
+  createRestaurant,
+  setRestaurantImage
 };

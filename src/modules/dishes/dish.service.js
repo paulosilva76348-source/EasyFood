@@ -1,4 +1,5 @@
 const prisma = require("../../database/prisma");
+const imageService = require("../shared/image.service");
 
 function validateDish(data) {
   if (typeof data.name !== "string" || !data.name.trim()) {
@@ -48,7 +49,7 @@ function parseId(value) {
 
 // ⬅️ NOVA: autorização por dono
 function ensureOwnership(restaurant, userId) {
-  if (restaurant.ownerId !== userId) {
+  if (Number(restaurant.ownerId) !== Number(userId)) {
     const error = new Error("Você não tem permissão para gerenciar este restaurante");
     error.statusCode = 403;
     throw error;
@@ -127,6 +128,27 @@ async function deleteDish(dishId, userId) { // ⬅️ novo parâmetro userId
   ensureOwnership(dish.restaurant, userId); // ⬅️
 
   await prisma.dish.delete({ where: { id: dish.id } });
+  imageService.removeImage(dish.imageUrl);
+}
+
+async function setDishImage(dishId, file, userId) {
+  const dish = await getDishWithRestaurant(dishId);
+  ensureOwnership(dish.restaurant, userId);
+
+  const imageUrl = await imageService.saveImage(file && file.buffer, "dishes");
+  try {
+    const updated = await prisma.dish.update({
+      where: { id: dish.id },
+      data: { imageUrl }
+    });
+    if (dish.imageUrl && dish.imageUrl !== imageUrl) {
+      imageService.removeImage(dish.imageUrl);
+    }
+    return updated;
+  } catch (error) {
+    imageService.removeImage(imageUrl);
+    throw error;
+  }
 }
 
 module.exports = {
@@ -135,5 +157,6 @@ module.exports = {
   getDish,
   updateDish,
   deleteDish,
+  setDishImage,
   parseId
 };

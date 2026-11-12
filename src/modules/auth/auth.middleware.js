@@ -16,9 +16,14 @@ function authenticate(req, res, next) {
   try {
     // Verifica a assinatura e a validade do token
     const payload = jwt.verify(token, JWT_SECRET);
+    const id = Number(payload.sub);
 
-    // Anexa os dados do usuário na requisição
-    req.user = { id: payload.sub, name: payload.name, email: payload.email };
+    // O id do token precisa ser número: o banco compara ownerId como inteiro.
+    req.user = {
+      id: Number.isSafeInteger(id) ? id : payload.sub,
+      name: payload.name,
+      email: payload.email
+    };
 
     next(); // token válido → segue para a rota
   } catch (error) {
